@@ -4,8 +4,17 @@
 <head>
     <meta charset='utf-8'>
     <title>crocjs</title>
-    <link rel="stylesheet" href="/dropzone.css">
     <link rel="stylesheet" href="/style.css">
+    <style>
+        input {
+            padding: 1em;
+            font-size: 1.1em;
+        }
+
+        .pt1 {
+            padding-top: 1em;
+        }
+    </style>
 </head>
 
 <body>
@@ -18,34 +27,19 @@
             <p><strong>How do I start web hosting?</strong> You will need to setup port forwarding, a dynamic DNS, name
                 registration, MySQL, PHP, Apache and take a online course in Javascript. </p>
         </details>
-        <div style="padding-top: 0.5em;" class="flexcol">
-            <label for="inputDomain" class="p05">Choose a passphrase name: &nbsp;</label>
+        <div class="flexcol pt1">
+            <label for="inputDomain" class="p05">Enter passphrase: &nbsp;</label>
             <input type='text' name="inputDomain" id="inputDomain" class="editer" value="pricelesspheasant" style="flex:1">
         </div>
-        <div id="filesBox" class="dropzone">
-            <div class="dz-message" data-dz-message>
-                <span>Drag and drop a folder or click to share a file.<br>
-                    <p><small></small></p>
-                </span>
-            </div>
+        <div class="flexcol pt1">
+            <input type="button" id="buttonSend" value="Send" onclick="document.getElementById('file').click();" style="flex:1; margin-right: 0.5em;" />
+            <input type="file" style="display:none;" id="file" name="file" />
+            <input type="button" id="buttonReceive" value="Receive" style="flex:1; margin-left: 0.5em;" />
         </div>
-        <div id="console" class="dropzone hide">
-            <div id="consoleHeader"></div>
-            <details>
-                <summary>Files served</summary>
-                <div id="fileList"></div>
-            </details>
-            <h3>Console:</h3>
-            <textarea id="consoleText" readonly></textarea>
-        </div>
-        <footer>
+        <footer class="pt1">
             <p align="center">Made by <a href="https://github.com/schollz">schollz</a>, source available on <a href="https://github.com/schollz/hostyoself">Github</a>.</p>
         </footer>
     </main>
-    <script>
-    window.publicURL = "https:\/\/hostyoself.com";
-    </script>
-    <script src="/dropzone.js"></script>
     <script src="/main.js"></script>
 </body>
 

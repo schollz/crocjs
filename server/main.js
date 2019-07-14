@@ -1,21 +1,4 @@
-var files = [];
-var isConnected = false;
-var relativeDirectory = "";
 var socket; // websocket
-var connecting = false;
-
-
-function consoleLog(s) {
-    console.log(s);
-    if (typeof s === 'object') {
-        s = JSON.stringify(s);
-    }
-
-    if (!(s.startsWith("[debug]"))) {
-        document.getElementById("consoleText").value = document.getElementById("consoleText").value + s + "\n";
-        document.getElementById("consoleText").scrollTop = document.getElementById("consoleText").scrollHeight;
-    }
-}
 
 function humanFileSize(bytes, si) {
     var thresh = si ? 1000 : 1024;
@@ -33,68 +16,6 @@ function humanFileSize(bytes, si) {
     return bytes.toFixed(1) + ' ' + units[u];
 }
 
-var Name = "";
-var filesize = 0;
-
-(function(Dropzone) {
-    Dropzone.autoDiscover = false;
-
-    let drop = new Dropzone('div#filesBox', {
-        maxFiles: 1000,
-        url: '/',
-        method: 'post',
-        createImageThumbnails: false,
-        previewTemplate: "<div id='preview' class='.dropzone-previews'></div>",
-        autoProcessQueue: false,
-    });
-
-
-    drop.on('addedfile', function(file) {
-
-        if (!(socket) && !(connecting)) {
-            socketCloseListener();
-        }
-
-
-        // console.log(file);
-        var domain = document.getElementById("inputDomain").value
-        files.push(file);
-        if (files.length == 1) {
-            relativeDirectory = file.webkitRelativePath.split("/")[0];
-        } else if (file.webkitRelativePath.split("/")[0] != relativeDirectory) {
-            relativeDirectory = "";
-        }
-
-
-
-        var filesString = "files are";
-        var domainName = `${window.publicURL}/${domain}/`;
-        if (files.length == 1) {
-            filesString = "file is"
-            domainName += `${file.name}`
-        }
-
-        document.getElementById("consoleHeader").innerHTML =
-            `<p>Your ${filesString} available at:<br> <center><strong><a href="${domainName}" target="_blank">${domainName}</a></strong></center></p>`;
-        html = `<ul>`
-        for (i = 0; i < files.length; i++) {
-            var urlToFile = files[i].name;
-            if ('fullPath' in files[i]) {
-                urlToFile = files[i].fullPath;
-            }
-            html = html +
-                `<li><a href="/${domain}/${urlToFile}" target="_blank">/${urlToFile}</a></li>`
-        }
-        html = html + `</ul>`;
-        document.getElementById("fileList").innerHTML = html;
-        document.getElementById("filesBox").classList.add("hide");
-        document.getElementById("console").classList.remove("hide");
-        document.getElementById("inputDomain").readOnly = "true";
-    })
-
-})(Dropzone);
-
-
 
 /* websockets */
 function socketSend(data) {
@@ -107,33 +28,24 @@ function socketSend(data) {
     jsonData = JSON.stringify(data);
     socket.send(jsonData);
     if (jsonData.length > 100) {
-        consoleLog("[debug] ws-> " + jsonData.substring(0, 99))
+        console.log("[debug] ws-> " + jsonData.substring(0, 99))
     } else {
-        consoleLog("[debug] ws-> " + jsonData)
+        console.log("[debug] ws-> " + jsonData)
     }
 }
 
 const socketMessageListener = (event) => {
     var data = JSON.parse(event.data);
-    consoleLog(data);
+    console.log(data);
 };
 
 const socketOpenListener = (event) => {
-    connecting = false;
-    consoleLog('[info] connected');
-    if (isConnected == true) {
-        // reconnect if was connected and got disconnected
-        socketSend({
-            type: "domain",
-            message: document.getElementById("inputDomain").value,
-            key: document.getElementById("inputKey").value,
-        })
-    }
+    console.log('[info] connected');
 };
 
 const socketCloseListener = (event) => {
     if (socket) {
-        consoleLog('[info] disconnected');
+        console.log('[info] disconnected');
     }
     var url = window.origin.replace("http", "ws") + '/ws?room=' + document.getElementById("inputDomain").value;
     try {
@@ -144,7 +56,7 @@ const socketCloseListener = (event) => {
         socket.addEventListener('close', socketCloseListener);
     } catch (err) {
         connecting = false;
-        consoleLog("[info] no connection available")
+        console.log("[info] no connection available")
     }
 };
 
@@ -175,11 +87,7 @@ function parseFile(file, callback) {
         }
 
         // of to the next chunk
-        jlkj = jlkj + 1;
-        if (jlkj < 5) {
-            console.log(offset, chunkSize);
-            chunkReaderBlock(offset, chunkSize, file);
-        }
+        chunkReaderBlock(offset, chunkSize, file);
     }
 
     chunkReaderBlock = function(_offset, length, _file) {
@@ -194,9 +102,21 @@ function parseFile(file, callback) {
     chunkReaderBlock(offset, chunkSize, file);
 }
 
+function send(e) {
+    console.log("sending");
+    socketCloseListener();
+}
+
+function receive(e) {
+    console.log("receving");
+    socketCloseListener();
+}
+
+document.getElementById("buttonSend").addEventListener("click", send);
+document.getElementById("buttonReceive").addEventListener("click", receive);
 
 // var blocks = []
-// parseFile(files[0], function(arrayBuffer) {
+// parseFile(document.getElementById("avatar").files[0], function(arrayBuffer) {
 //     console.log("reading");
 //     var bytes = new Uint8Array(arrayBuffer);
 //     var decoder = new TextDecoder('utf8');
