@@ -41,15 +41,14 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		serveWs(w, r)
 		return
 	}
+
+	urlPath := r.URL.Path
 	if r.URL.Path != "/" {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
+		urlPath = urlPath[1:]
+	} else {
+		urlPath = "home.html"
 	}
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	http.ServeFile(w, r, "home.html")
+	http.ServeFile(w, r, urlPath)
 }
 
 // serveWs handles websocket requests from the peer.
@@ -92,7 +91,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 4096 * 60
 )
 
 var (
@@ -114,6 +113,11 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+}
+
+type Message struct {
+	message []byte
+	origin  string
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -139,7 +143,7 @@ func (c *Client) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+		c.hub.broadcast <- Message{message, c.conn.RemoteAddr().String()}
 	}
 }
 
@@ -197,7 +201,7 @@ type Hub struct {
 	clients map[*Client]bool
 
 	// Inbound messages from the clients.
-	broadcast chan []byte
+	broadcast chan Message
 
 	// Register requests from the clients.
 	register chan *Client
@@ -208,7 +212,7 @@ type Hub struct {
 
 func newHub() *Hub {
 	return &Hub{
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan Message),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
@@ -229,9 +233,14 @@ func (h *Hub) run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
+			log.Debugf("message from origin %s", message.origin)
 			for client := range h.clients {
+				// don't send back to the current
+				if client.conn.RemoteAddr().String() == message.origin {
+					continue
+				}
 				select {
-				case client.send <- message:
+				case client.send <- message.message:
 				default:
 					close(client.send)
 					delete(h.clients, client)

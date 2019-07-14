@@ -1,102 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 
 <head>
-    <title>Chat Example</title>
-    <script type="text/javascript">
-    window.onload = function() {
-        var conn;
-        var msg = document.getElementById("msg");
-        var log = document.getElementById("log");
-
-        function appendLog(item) {
-            var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-            log.appendChild(item);
-            if (doScroll) {
-                log.scrollTop = log.scrollHeight - log.clientHeight;
-            }
-        }
-
-        document.getElementById("form").onsubmit = function() {
-            if (!conn) {
-                conn = new WebSocket("ws://" + document.location.host + "/ws?room=" + document.getElementById("room").value);
-                conn.onclose = function(evt) {
-                    var item = document.createElement("div");
-                    item.innerHTML = "<b>Connection closed.</b>";
-                    appendLog(item);
-                };
-                conn.onmessage = function(evt) {
-                    var messages = evt.data.split('\n');
-                    for (var i = 0; i < messages.length; i++) {
-                        var item = document.createElement("div");
-                        item.innerText = messages[i];
-                        appendLog(item);
-                    }
-                };
-                return false;
-            }
-            if (!msg.value) {
-                return false;
-            }
-            conn.send(msg.value);
-            msg.value = "";
-            return false;
-        };
-
-        if (window["WebSocket"]) {
-
-        } else {
-            var item = document.createElement("div");
-            item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-            appendLog(item);
-        }
-    };
-    </script>
-    <style type="text/css">
-    html {
-        overflow: hidden;
-    }
-
-    body {
-        overflow: hidden;
-        padding: 0;
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        background: gray;
-    }
-
-    #log {
-        background: white;
-        margin: 0;
-        padding: 0.5em 0.5em 0.5em 0.5em;
-        position: absolute;
-        top: 0.5em;
-        left: 0.5em;
-        right: 0.5em;
-        bottom: 3em;
-        overflow: auto;
-    }
-
-    #form {
-        padding: 0 0.5em 0 0.5em;
-        margin: 0;
-        position: absolute;
-        bottom: 1em;
-        left: 0px;
-        width: 100%;
-        overflow: hidden;
-    }
-    </style>
+    <meta charset='utf-8'>
+    <title>crocjs</title>
+    <link rel="stylesheet" href="/dropzone.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-    <div id="log"></div>
-    <form id="form">
-        <input type="submit" value="Send" />
-        <input type="text" id="msg" size="64" />
-        <input type="text" id="room" size="64" />
-    </form>
+    <main>
+        <p id="errormessage" class="error"></p>
+        <p>crocjs</p>
+        <details>
+            <summary>Click here for FAQ.</summary>
+            <h2 id=" faq">FAQ</h2>
+            <p><strong>How do I start web hosting?</strong> You will need to setup port forwarding, a dynamic DNS, name
+                registration, MySQL, PHP, Apache and take a online course in Javascript. </p>
+        </details>
+        <div style="padding-top: 0.5em;" class="flexcol">
+            <label for="inputDomain" class="p05">Choose a passphrase name: &nbsp;</label>
+            <input type='text' name="inputDomain" id="inputDomain" class="editer" value="pricelesspheasant" style="flex:1">
+        </div>
+        <div id="filesBox" class="dropzone">
+            <div class="dz-message" data-dz-message>
+                <span>Drag and drop a folder or click to share a file.<br>
+                    <p><small></small></p>
+                </span>
+            </div>
+        </div>
+        <div id="console" class="dropzone hide">
+            <div id="consoleHeader"></div>
+            <details>
+                <summary>Files served</summary>
+                <div id="fileList"></div>
+            </details>
+            <h3>Console:</h3>
+            <textarea id="consoleText" readonly></textarea>
+        </div>
+        <footer>
+            <p align="center">Made by <a href="https://github.com/schollz">schollz</a>, source available on <a href="https://github.com/schollz/hostyoself">Github</a>.</p>
+        </footer>
+    </main>
+    <script>
+    window.publicURL = "https:\/\/hostyoself.com";
+    </script>
+    <script src="/dropzone.js"></script>
+    <script src="/main.js"></script>
 </body>
 
 </html>
